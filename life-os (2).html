@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Life OS</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0c0c;--surface:#161616;--surface2:#202020;--surface3:#2a2a2a;
+  --border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);
+  --text:#ede9e3;--muted:#666;--muted2:#444;
+  --accent:#c9a96e;--accent-dim:rgba(201,169,110,0.1);
+  --health:#7dbfaa;--work:#7aaed4;--growth:#a98fcc;
+  --side:#c9a96e;--spirit:#d4956a;--admin:#8a9ba8;
+  --green:#7dbfaa;--red:#cc7a7a;
+  --r:8px;--r-lg:14px;
+  --sans:'DM Sans',sans-serif;--serif:'DM Serif Display',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
+.app{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:210px;min-height:100vh;background:var(--surface);border-right:0.5px solid var(--border);position:fixed;top:0;left:0;display:flex;flex-direction:column;padding:24px 0;z-index:100}
+.logo{font-family:var(--serif);font-size:17px;color:var(--accent);padding:0 20px 20px;border-bottom:0.5px solid var(--border);margin-bottom:12px;line-height:1.2}
+.logo small{font-family:var(--sans);font-size:10px;display:block;color:var(--muted);font-weight:300;margin-top:3px;letter-spacing:.07em;text-transform:uppercase}
+.nav-group{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted2);padding:12px 20px 4px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 20px;font-size:13px;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all .15s}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,.02)}
+.nav-item.active{color:var(--text);border-left-color:var(--accent);background:var(--accent-dim)}
+.nav-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.sync-bar{margin-top:auto;padding:14px 20px;font-size:11px;color:var(--muted2);border-top:0.5px solid var(--border);display:flex;align-items:center;gap:6px}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--muted2);flex-shrink:0;transition:background .3s}
+.sync-dot.ok{background:var(--green)}
+.sync-dot.err{background:var(--red)}
+.sync-dot.spin{background:var(--accent);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* MAIN */
+.main{margin-left:210px;flex:1;padding:36px 44px;max-width:920px}
+.section{display:none;animation:fi .2s ease}
+.section.active{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* PAGE HEADER */
+.ph{margin-bottom:28px}
+.ph-title{font-family:var(--serif);font-size:28px;font-weight:400;margin-bottom:4px}
+.ph-sub{font-size:13px;color:var(--muted);font-weight:300}
+.date-chip{display:inline-flex;align-items:center;background:var(--surface2);border:0.5px solid var(--border);border-radius:20px;padding:3px 12px;font-size:11px;color:var(--muted);margin-bottom:14px}
+
+/* CARDS */
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:18px 22px;margin-bottom:12px}
+.card:hover{border-color:var(--border-h)}
+.card-title{font-size:14px;font-weight:500;margin-bottom:10px}
+.card-sub{font-size:12px;color:var(--muted);font-weight:300;line-height:1.65}
+.card-sub ul{padding-left:15px}
+.card-sub li{margin-bottom:4px}
+.card-sub strong{color:var(--text);font-weight:500}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+
+/* INPUTS */
+input,textarea,select{font-family:var(--sans);font-size:13px;font-weight:300;color:var(--text);background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--r);padding:7px 11px;outline:none;transition:border-color .15s;width:100%}
+input:focus,textarea:focus,select:focus{border-color:rgba(201,169,110,.4)}
+select option{background:#1e1e1e}
+textarea{resize:vertical;line-height:1.6}
+
+/* BUTTONS */
+.btn{padding:8px 16px;background:var(--accent);color:#1a1100;border:none;border-radius:var(--r);font-size:12px;font-family:var(--sans);font-weight:600;cursor:pointer;transition:opacity .15s;white-space:nowrap}
+.btn:hover{opacity:.82}
+.btn:active{opacity:.7}
+.btn-ghost{background:transparent;color:var(--text);border:0.5px solid var(--border);font-weight:400}
+.btn-ghost:hover{background:var(--surface2);opacity:1}
+.btn-danger{background:transparent;color:var(--red);border:0.5px solid rgba(204,122,122,.25);font-weight:400}
+.btn-danger:hover{background:rgba(204,122,122,.08);opacity:1}
+.btn-row{display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.save-msg{font-size:12px;color:var(--muted)}
+.save-msg.ok{color:var(--green)}
+.save-msg.err{color:var(--red)}
+.icon-btn{background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:6px;font-size:15px;line-height:1;transition:background .15s;color:var(--muted)}
+.icon-btn:hover{background:var(--surface3);color:var(--text)}
+.icon-btn.del:hover{color:var(--red)}
+
+/* ─── SCHEDULE ─── */
+.day-toggle{display:flex;gap:8px;margin-bottom:20px}
+.day-btn{padding:6px 16px;border:0.5px solid var(--border);border-radius:20px;font-size:12px;font-family:var(--sans);cursor:pointer;background:transparent;color:var(--muted);transition:all .15s}
+.day-btn:hover{border-color:var(--border-h);color:var(--text)}
+.day-btn.active{background:var(--accent);color:#1a1100;border-color:var(--accent);font-weight:500}
+
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)}
+.leg-dot{width:6px;height:6px;border-radius:50%}
+
+/* schedule block — view mode */
+.sblock{display:flex;gap:0;align-items:stretch;border-radius:var(--r);border:0.5px solid var(--border);margin-bottom:5px;transition:border-color .15s;overflow:hidden;position:relative}
+.sblock:hover{border-color:var(--border-h)}
+.sblock.nudge{border-left:2px solid var(--accent)}
+.sblock.hl{border-left:2px solid var(--growth)}
+.sblock-inner{display:flex;gap:14px;align-items:flex-start;padding:11px 12px;flex:1}
+.stime{font-size:11px;color:var(--muted);min-width:68px;padding-top:2px;font-weight:300;flex-shrink:0}
+.sinfo{flex:1;min-width:0}
+.stitle{font-size:13px;font-weight:500;margin-bottom:2px;display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+.ssub{font-size:12px;color:var(--muted);font-weight:300;line-height:1.5}
+.tag{font-size:10px;padding:1px 7px;border-radius:20px;font-weight:400;white-space:nowrap}
+.t-health{background:rgba(125,191,170,.12);color:var(--health)}
+.t-work{background:rgba(122,174,212,.12);color:var(--work)}
+.t-growth{background:rgba(169,143,204,.12);color:var(--growth)}
+.t-side{background:rgba(201,169,110,.12);color:var(--side)}
+.t-spirit{background:rgba(212,149,106,.12);color:var(--spirit)}
+.t-admin{background:rgba(138,155,168,.12);color:var(--admin)}
+.nudge-tag{font-size:10px;padding:1px 7px;border-radius:20px;background:rgba(201,169,110,.12);color:var(--accent)}
+
+.sblock-actions{display:flex;flex-direction:column;justify-content:center;gap:2px;padding:6px 8px;opacity:0;transition:opacity .15s;border-left:0.5px solid var(--border);background:var(--surface)}
+.sblock:hover .sblock-actions{opacity:1}
+
+/* schedule block — edit mode */
+.sblock-edit{border:0.5px solid rgba(201,169,110,.35);border-radius:var(--r);padding:14px;margin-bottom:5px;background:rgba(201,169,110,.04)}
+.edit-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.edit-row input,.edit-row select,.edit-row textarea{margin-bottom:0}
+.edit-time{width:90px;flex-shrink:0}
+.edit-tag{width:110px;flex-shrink:0}
+.edit-title{flex:1;min-width:140px}
+.edit-sub{width:100%}
+.edit-actions{display:flex;gap:8px;margin-top:4px}
+
+.add-block-btn{display:flex;align-items:center;gap:8px;padding:9px 14px;border:0.5px dashed var(--border);border-radius:var(--r);color:var(--muted);font-size:12px;cursor:pointer;transition:all .15s;background:transparent;width:100%;margin-top:4px;font-family:var(--sans)}
+.add-block-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+
+.sched-save-row{display:flex;gap:8px;align-items:center;margin:16px 0 8px;padding-top:12px;border-top:0.5px solid var(--border)}
+
+/* PLANNER */
+.pitem{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:0.5px solid var(--border)}
+.pitem:last-child{border-bottom:none}
+.pnum{width:22px;height:22px;border-radius:50%;background:var(--surface2);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);flex-shrink:0;margin-top:1px}
+.plabel{font-size:12px;color:var(--muted);font-weight:300;margin-bottom:5px}
+.notice{background:rgba(201,169,110,.07);border:0.5px solid rgba(201,169,110,.2);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--accent);margin-bottom:14px;font-weight:300;line-height:1.6}
+
+/* EXPENSES */
+.exp-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.exp-amt-big{font-family:var(--serif);font-size:32px;color:var(--accent);margin-bottom:2px}
+.exp-entry{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--border);font-size:12px;gap:8px}
+.exp-entry:last-child{border-bottom:none}
+.exp-del{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:15px;padding:0 3px;transition:color .15s;flex-shrink:0}
+.exp-del:hover{color:var(--red)}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:12px}
+.cat-card{background:var(--surface2);border-radius:var(--r);padding:10px}
+.cat-name{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:3px}
+.cat-amt{font-size:16px;font-family:var(--serif)}
+
+/* MANIFESTATION */
+.mstep{display:flex;gap:16px;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;margin-bottom:10px}
+.mnum{font-family:var(--serif);font-size:26px;color:var(--accent);opacity:.3;flex-shrink:0;line-height:1.1;min-width:26px}
+.mstep-title{font-size:13px;font-weight:500;margin-bottom:5px}
+.mstep-body{font-size:12px;color:var(--muted);font-weight:300;line-height:1.7}
+.grat-list{list-style:none;margin-top:10px}
+.grat-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.grat-row span{font-size:12px;color:var(--muted2);min-width:14px}
+.grat-row input{flex:1}
+
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+@media(max-width:720px){
+  .sidebar{width:100%;min-height:auto;position:relative;flex-direction:row;flex-wrap:wrap;padding:10px;gap:4px;border-right:none;border-bottom:0.5px solid var(--border)}
+  .logo{padding:0 10px 10px;width:100%;margin-bottom:6px}
+  .nav-group,.sync-bar{display:none}
+  .nav-item{padding:6px 10px;border-left:none;border-radius:20px;font-size:12px}
+  .nav-item.active{border-left:none}
+  .app{flex-direction:column}
+  .main{margin-left:0;padding:18px 14px;max-width:100%}
+  .sblock-actions{opacity:1}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="sidebar">
+  <div class="logo">Life OS<small>Your daily operating system</small></div>
+  <div class="nav-group">Schedule</div>
+  <div class="nav-item active" onclick="nav('schedule',this)"><span class="nav-dot" style="background:var(--accent)"></span>Daily schedule</div>
+  <div class="nav-item" onclick="nav('planner',this)"><span class="nav-dot" style="background:var(--growth)"></span>Day planner</div>
+  <div class="nav-group">Track</div>
+  <div class="nav-item" onclick="nav('expenses',this)"><span class="nav-dot" style="background:var(--side)"></span>Expenses</div>
+  <div class="nav-group">Mind</div>
+  <div class="nav-item" onclick="nav('manifest',this)"><span class="nav-dot" style="background:var(--spirit)"></span>Manifestation</div>
+  <div class="nav-group">Notes</div>
+  <div class="nav-item" onclick="nav('systems',this)"><span class="nav-dot" style="background:var(--admin)"></span>Systems & notes</div>
+  <div class="sync-bar"><span class="sync-dot" id="sync-dot"></span><span id="sync-label">Not synced</span></div>
+</div>
+
+<div class="main">
+
+<!-- ═══════════ SCHEDULE ═══════════ -->
+<div id="schedule" class="section active">
+  <div class="ph">
+    <div class="date-chip" id="today-date"></div>
+    <div class="ph-title">Daily schedule</div>
+    <div class="ph-sub">Tap the pencil to edit any block · Add or remove blocks · Saves to your Google Sheet</div>
+  </div>
+  <div class="day-toggle">
+    <button class="day-btn active" onclick="showDay('wd',this)">Weekday</button>
+    <button class="day-btn" onclick="showDay('we',this)">Weekend</button>
+  </div>
+  <div class="legend">
+    <div class="leg"><div class="leg-dot" style="background:var(--health)"></div>Health</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--work)"></div>Work</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--growth)"></div>Growth</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--side)"></div>Side projects</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--spirit)"></div>Spirit</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--admin)"></div>Admin</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--accent)"></div>Nudge</div>
+  </div>
+  <div id="wd-blocks"></div>
+  <div id="we-blocks" style="display:none"></div>
+  <div class="sched-save-row">
+    <button class="btn" onclick="saveSchedule()">Save schedule to sheet</button>
+    <span class="save-msg" id="sched-msg"></span>
+  </div>
+</div>
+
+<!-- ═══════════ PLANNER ═══════════ -->
+<div id="planner" class="section">
+  <div class="ph">
+    <div class="ph-title">Day planner</div>
+    <div class="ph-sub">Fill every evening at 9:45PM. Your tomorrow is built tonight.</div>
+  </div>
+  <div class="notice">Your ADHD medication peaks 10AM–12PM. This planner ensures that window is never wasted figuring out what to do.</div>
+  <div class="card">
+    <div class="card-title" id="planner-for">Planning for tomorrow</div>
+    <ul style="list-style:none;padding:4px 0">
+      <li class="pitem"><span class="pnum">1</span><div style="flex:1"><div class="plabel">What time are my client calls tomorrow?</div><textarea id="p1" rows="2" placeholder="e.g. 2PM — Vodafone · 4PM — HSBC · 6:30PM — SAP"></textarea></div></li>
+      <li class="pitem"><span class="pnum">2</span><div style="flex:1"><div class="plabel">My 3 non-negotiables (1 work · 1 growth · 1 side project)</div><textarea id="p2" rows="3" placeholder="Work: &#10;Growth: &#10;Side project:"></textarea></div></li>
+      <li class="pitem"><span class="pnum">3</span><div style="flex:1"><div class="plabel">Which job applications will I send? (2–3 specific)</div><textarea id="p3" rows="2" placeholder="1. &#10;2. &#10;3."></textarea></div></li>
+      <li class="pitem"><span class="pnum">4</span><div style="flex:1"><div class="plabel">What is my 10AM deep work focus?</div><input id="p4" placeholder="e.g. Build AI prompt library for EBR calls"></div></li>
+      <li class="pitem"><span class="pnum">5</span><div style="flex:1"><div class="plabel">What side project task will I finish at 8PM?</div><input id="p5" placeholder="e.g. Write intro for AI newsletter edition 3"></div></li>
+      <li class="pitem"><span class="pnum">6</span><div style="flex:1"><div class="plabel">FITTR check — what do I need to prep tonight?</div><input id="p6" placeholder="e.g. Boil eggs, measure oats, pack lunch"></div></li>
+      <li class="pitem"><span class="pnum">7</span><div style="flex:1"><div class="plabel">One thing I'm proud of from today</div><input id="p7" placeholder="Don't skip this one."></div></li>
+      <li class="pitem"><span class="pnum">8</span><div style="flex:1"><div class="plabel">One thing I'll do differently tomorrow</div><input id="p8" placeholder="Honest. No judgment."></div></li>
+    </ul>
+    <div class="btn-row">
+      <button class="btn" onclick="savePlanner()">Save to Google Sheet</button>
+      <button class="btn btn-ghost" onclick="clearPlanner()">Clear</button>
+      <span class="save-msg" id="planner-msg"></span>
+    </div>
+  </div>
+  <div class="card" style="margin-top:0">
+    <div class="card-title">Past planners</div>
+    <div id="planner-history" class="card-sub">Loading...</div>
+  </div>
+</div>
+
+<!-- ═══════════ EXPENSES ═══════════ -->
+<div id="expenses" class="section">
+  <div class="ph">
+    <div class="ph-title">Expenses</div>
+    <div class="ph-sub">Log the moment you spend. Every night at 9:35PM.</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Add expense</div>
+    <div class="exp-row">
+      <input id="e-amt" type="number" placeholder="Amount ₹" style="width:110px;flex:none">
+      <input id="e-desc" placeholder="What for?">
+      <select id="e-cat" style="width:130px;flex:none">
+        <option>Food</option><option>Transport</option><option>Health</option>
+        <option>Gym & Fitness</option><option>Side Project</option><option>Shopping</option>
+        <option>Fun</option><option>Other</option>
+      </select>
+      <button class="btn" onclick="addExpense()">Add</button>
+    </div>
+  </div>
+  <div class="grid2" style="margin-bottom:12px">
+    <div class="card">
+      <div class="card-sub" style="font-size:10px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">This month</div>
+      <div class="exp-amt-big" id="exp-total">₹0</div>
+      <div class="cat-grid" id="cat-grid"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Recent</div>
+      <div id="exp-list"><div class="card-sub">No expenses yet.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ MANIFESTATION ═══════════ -->
+<div id="manifest" class="section">
+  <div class="ph">
+    <div class="ph-title">Manifestation practice</div>
+    <div class="ph-sub">15 minutes every morning at 9:30AM. Intention + emotion + one action.</div>
+  </div>
+  <div class="mstep"><div class="mnum">1</div><div><div class="mstep-title">Settle — 2 mins</div><div class="mstep-body">Sit comfortably. Close your eyes. Take 5 slow deep breaths. Let the morning noise settle. You are not doing anything yet — just arriving in your own presence.</div></div></div>
+  <div class="mstep"><div class="mnum">2</div><div style="flex:1"><div class="mstep-title">Write your intentions — 5 mins</div><div class="mstep-body" style="margin-bottom:10px">3–5 statements in present tense, as if already true. Examples: <em style="color:var(--muted2)">"I am healthy and my body grows stronger each day." / "I am in a role that challenges and rewards me." / "My side projects generate income beyond my salary."</em></div>
+    <textarea id="m-intentions" rows="5" placeholder="Write your intentions here. Present tense. Already true."></textarea>
+    <div class="btn-row"><button class="btn" onclick="saveManifest()">Save to sheet</button><span class="save-msg" id="manifest-msg"></span></div>
+  </div></div>
+  <div class="mstep"><div class="mnum">3</div><div><div class="mstep-title">Visualise — 5 mins</div><div class="mstep-body">Close your eyes. Pick one intention. See the specific moment it is real — a scene, not a vague future. Where are you? What does it feel like in your chest? Hold that feeling for 5 minutes. The emotion is the signal, not the picture.</div></div></div>
+  <div class="mstep"><div class="mnum">4</div><div style="flex:1"><div class="mstep-title">Gratitude — 3 mins</div><div class="mstep-body" style="margin-bottom:10px">3 genuine things. One must be small — your tea, the morning light, your own effort yesterday.</div>
+    <ul class="grat-list">
+      <li class="grat-row"><span>1.</span><input id="g1" placeholder="I am grateful for..."></li>
+      <li class="grat-row"><span>2.</span><input id="g2" placeholder="I am grateful for..."></li>
+      <li class="grat-row"><span>3.</span><input id="g3" placeholder="I am grateful for..."></li>
+    </ul>
+    <div class="btn-row"><button class="btn" onclick="saveGratitude()">Save to sheet</button><span class="save-msg" id="grat-msg"></span></div>
+  </div></div>
+  <div class="card" style="border-left:2px solid var(--accent);background:rgba(201,169,110,.04)">
+    <div class="card-title" style="color:var(--accent)">The one rule</div>
+    <div class="card-sub">Do not manifest and then wait. Every intention must have one action attached to it today — however small. Manifestation without action is daydreaming. You are building a life, not wishing for one.</div>
+  </div>
+</div>
+
+<!-- ═══════════ SYSTEMS ═══════════ -->
+<div id="systems" class="section">
+  <div class="ph">
+    <div class="ph-title">Systems & notes</div>
+    <div class="ph-sub">Your operating manual.</div>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="card-title">ADHD non-negotiables</div><div class="card-sub"><ul><li>Medicine at 9:45AM every day — weekends too</li><li>Sleep aid before 11PM. Lights out by 11PM.</li><li>10AM–12PM is your peak window. Guard it fiercely.</li><li>Wind-down from 10:30PM — no screens, no stimulation</li><li>Consistent sleep + wake times are medicine too</li></ul></div></div>
+    <div class="card"><div class="card-title">Newsletter launch</div><div class="card-sub"><ul><li><strong>AI newsletter:</strong> 15 editions drafted. Set up Beehiiv, launch edition 1 this weekend.</li><li><strong>Careers newsletter:</strong> Outline 5 topics this weekend. Write edition 1 next weekend.</li><li>1 LinkedIn post per edition. Cross-post to relevant subreddits.</li><li>Path: affiliate links → prompt library → sponsorships</li></ul></div></div>
+    <div class="card"><div class="card-title">AI tinkering — lead from the front</div><div class="card-sub"><ul><li>One new tool or workflow tested every week</li><li>Build Coursera use cases: EBR prep, meeting notes, account summaries</li><li>Share one AI insight with your team every 2 weeks</li><li>Monthly LinkedIn post on AI in CS</li></ul></div></div>
+    <div class="card"><div class="card-title">Content creation</div><div class="card-sub"><ul><li>One platform first: LinkedIn</li><li>3 posts/week: insight · story · question/poll</li><li>Batch record Saturday afternoons</li><li>Running ideas note — log every "that's interesting" moment immediately</li></ul></div></div>
+  </div>
+  <div class="card" style="margin-top:0">
+    <div class="card-title">Personal notes</div>
+    <textarea id="notes-area" rows="6" placeholder="Ideas, reminders, reflections..."></textarea>
+    <div class="btn-row">
+      <button class="btn" onclick="saveNotes()">Save to Google Sheet</button>
+      <span class="save-msg" id="notes-msg"></span>
+    </div>
+  </div>
+</div>
+
+</div></div>
+
+<script>
+const GAS = 'https://script.google.com/macros/s/AKfycbyEKrcN9DAnpTUcA_5L4NK4ukBvGUZzQ9cruBhLw9qsmqJl8GYeYBvY0wLAdYoy3tQx/exec';
+
+// ── SYNC UI ──
+function syncState(s,msg){
+  document.getElementById('sync-dot').className='sync-dot '+s;
+  document.getElementById('sync-label').textContent=msg;
+}
+function showMsg(id,msg,ok){
+  const el=document.getElementById(id);
+  el.textContent=msg;
+  el.className='save-msg '+(ok?'ok':'err');
+  setTimeout(()=>{el.textContent='';el.className='save-msg';},3000);
+}
+
+// ── GAS ──
+async function gasPost(tab,action,data){
+  syncState('spin','Saving...');
+  try{
+    await fetch(GAS,{method:'POST',body:JSON.stringify(Object.assign({tab,action},data))});
+    syncState('ok','Saved');
+    return true;
+  }catch(e){syncState('err','Save failed');return false;}
+}
+async function gasGet(tab){
+  try{
+    const r=await fetch(GAS+'?tab='+encodeURIComponent(tab));
+    const j=await r.json();
+    return j.rows||[];
+  }catch(e){return[];}
+}
+
+// ── NAV ──
+function nav(id,el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+  if(id==='planner')loadPlannerHistory();
+  if(id==='expenses')loadExpenses();
+  if(id==='manifest')loadManifest();
+  if(id==='systems')loadNotes();
+}
+
+// ── DAY TOGGLE ──
+let currentDay='wd';
+function showDay(id,btn){
+  document.getElementById('wd-blocks').style.display='none';
+  document.getElementById('we-blocks').style.display='none';
+  document.getElementById(id+'-blocks').style.display='block';
+  document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentDay=id;
+}
+
+// ── DATE ──
+(function(){
+  const now=new Date();
+  document.getElementById('today-date').textContent=now.toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const tom=new Date(now);tom.setDate(tom.getDate()+1);
+  document.getElementById('planner-for').textContent='Planning for '+tom.toLocaleDateString('en-IN',{weekday:'long',month:'long',day:'numeric'});
+})();
+
+// ══════════════════════════════════════
+// ── SCHEDULE DATA ──
+// ══════════════════════════════════════
+const TAG_OPTS=['health','work','growth','side','spirit','admin','nudge','none'];
+const TAG_LABELS={health:'Health',work:'Work',growth:'Growth',side:'Side projects',spirit:'Spirit',admin:'Admin',nudge:'Nudge',none:''};
+
+const DEFAULT_WD = [
+  {time:'6:30 AM',title:'Wake up',sub:'Before anything else: measure blood pressure and heart rate. Log it. Drink 500ml water.',tag:'nudge',hl:'nudge'},
+  {time:'6:45 AM',title:'Sunscreen',sub:'Quick sunscreen before gym. Full skincare routine after your post-gym bath.',tag:'admin',hl:''},
+  {time:'7:00 AM',title:'Gym',sub:'45–60 mins. Follow your FITTR programme. Zero processed food, zero sugar — today and every day.',tag:'health',hl:''},
+  {time:'8:10 AM',title:'Bath + full morning skincare',sub:'Shower, then full routine: cleanser → toner → serum → SPF. 20 mins total.',tag:'admin',hl:''},
+  {time:'8:35 AM',title:'FITTR breakfast',sub:'Measure and eat per your diet chart. Prep lunch + snack portions now.',tag:'health',hl:''},
+  {time:'9:05 AM',title:'Spiritual reading',sub:'15 mins of your spiritual book. No distractions. This anchors your day.',tag:'spirit',hl:''},
+  {time:'9:20 AM',title:'Prayer',sub:'5–10 mins. Stillness and gratitude. Set your inner tone before the world asks anything of you.',tag:'spirit',hl:''},
+  {time:'9:30 AM',title:'Manifestation practice',sub:'15 mins. Full method in the Manifestation tab — intentions, visualisation, gratitude.',tag:'spirit',hl:''},
+  {time:'9:45 AM',title:'⚑ ADHD medication',sub:'Take medicine now. Set a recurring phone alarm. Non-negotiable — this unlocks your whole day.',tag:'health',hl:'hl'},
+  {time:'9:55 AM',title:'Review day planner',sub:'Open the Day Planner tab. You filled it last night — now read it and own the day.',tag:'work',hl:''},
+  {time:'10:00 AM',title:'Deep work — AI tinkering + leadership',sub:'90 mins. Peak medication window. Test tools, build workflows, document insights. No calls, no Slack.',tag:'growth',hl:''},
+  {time:'11:30 AM',title:'Job applications',sub:'45 mins. Mon/Wed/Fri = international roles. Tue/Thu = India. Tailored, not spray-and-pray. 2–3 today.',tag:'nudge',hl:'nudge'},
+  {time:'12:15 PM',title:'FITTR lunch + break',sub:'Measure and eat. 30 mins. Short walk if you can. No screens while eating.',tag:'health',hl:''},
+  {time:'1:00 PM',title:'Client calls window',sub:'1PM–8PM. 4–5 calls, 30 mins each. Prep 5 mins before each call. Use gaps for email, Slack, account hygiene.',tag:'work',hl:''},
+  {time:'~5:30 PM',title:'Coursera upskilling',sub:'4x per week (Mon/Tue/Thu/Fri) on lighter call days. 45–60 mins. One module or lesson per session.',tag:'growth',hl:''},
+  {time:'7:00 PM',title:'FITTR dinner',sub:'Measure and eat. Last meal by 8PM.',tag:'health',hl:''},
+  {time:'8:00 PM',title:'Side project block — 90 mins',sub:'Mon/Wed = AI newsletter. Tue/Thu = Careers newsletter or other builds. Fri = content creation.',tag:'side',hl:''},
+  {time:'9:30 PM',title:'Evening skincare',sub:'Cleanser → treatment → moisturiser. Lay out gym clothes for tomorrow.',tag:'admin',hl:''},
+  {time:'9:35 PM',title:'Log expenses',sub:'Open Expenses tab. Log everything you spent today while it\'s fresh. Don\'t leave it for Sunday.',tag:'nudge',hl:'nudge'},
+  {time:'9:45 PM',title:'Fill tomorrow\'s day planner',sub:'10 mins. Open Day Planner tab. Fill it now so tomorrow\'s 10AM window is never wasted.',tag:'work',hl:''},
+  {time:'10:30 PM',title:'Wind down — screens off',sub:'Read, stretch, journal. No phone. ADHD sleep regulation needs a real wind-down ritual.',tag:'health',hl:'hl'},
+  {time:'11:00 PM',title:'⚑ Sleep aid + lights out',sub:'Take sleep medicine. In bed. 7–7.5 hrs sleep. Consistent bedtime is medicine too.',tag:'health',hl:'hl'},
+];
+
+const DEFAULT_WE = [
+  {time:'7:00 AM',title:'Wake up + weekly measurements (Sat)',sub:'Saturday only: log weight + body measurements (waist, chest, hips). Same time, same conditions every week. Also log BP + HR.',tag:'nudge',hl:'nudge'},
+  {time:'7:15 AM',title:'Sunscreen',sub:'Before gym.',tag:'admin',hl:''},
+  {time:'7:30 AM',title:'Gym or active recovery',sub:'45 mins. Yoga, walk, or mobility work on weekends — keep the habit alive.',tag:'health',hl:''},
+  {time:'8:30 AM',title:'Bath + full morning skincare',sub:'Full routine after bath.',tag:'admin',hl:''},
+  {time:'9:00 AM',title:'FITTR breakfast',sub:'Measure and eat per chart.',tag:'health',hl:''},
+  {time:'9:15 AM',title:'Spiritual reading + prayer + manifestation',sub:'More spacious today. 40 mins total. Longer reading, deeper practice, no rush.',tag:'spirit',hl:''},
+  {time:'9:45 AM',title:'⚑ ADHD medication',sub:'Same time on weekends. Your brain doesn\'t take Saturday off.',tag:'health',hl:'hl'},
+  {time:'10:15 AM',title:'Newsletter deep work — 2 hrs',sub:'Saturday = AI newsletter full edition. Sunday = Careers newsletter. Batch write while you\'re sharp.',tag:'side',hl:''},
+  {time:'12:15 PM',title:'FITTR lunch + free time',sub:'Eat, rest, be social. Recovery is part of the plan — protect it.',tag:'health',hl:''},
+  {time:'2:00 PM',title:'Coursera deep session — 2 hrs',sub:'Saturday = new content. Sunday = review + practice. One full module per weekend minimum.',tag:'growth',hl:''},
+  {time:'4:00 PM',title:'Content creation — 2 hrs',sub:'Saturday = film/record/write. Sunday = edit and schedule. LinkedIn posts, reels, ideas.',tag:'side',hl:''},
+  {time:'6:00 PM',title:'Weekly review (Sunday only)',sub:'Review expenses, applications sent, side project progress, what worked, what didn\'t. Honest reflection.',tag:'nudge',hl:'nudge'},
+  {time:'6:30 PM',title:'Job applications catch-up',sub:'Sunday: fill any gaps from the week. Even one application on a weekend compounds over time.',tag:'nudge',hl:'nudge'},
+  {time:'7:00 PM',title:'FITTR dinner + free evening',sub:'Relax. Recharge. You\'ve earned it.',tag:'health',hl:''},
+  {time:'11:00 PM',title:'⚑ Sleep aid + lights out',sub:'Same bedtime even on weekends. Consistency is everything.',tag:'health',hl:'hl'},
+];
+
+// Schedule state
+let schedules = { wd: JSON.parse(JSON.stringify(DEFAULT_WD)), we: JSON.parse(JSON.stringify(DEFAULT_WE)) };
+let editingBlock = null; // {day, index}
+
+// ── RENDER ──
+function renderSchedule(day) {
+  const container = document.getElementById(day+'-blocks');
+  const blocks = schedules[day];
+  container.innerHTML = '';
+  blocks.forEach((b, i) => {
+    if (editingBlock && editingBlock.day === day && editingBlock.index === i) {
+      container.appendChild(makeEditBlock(day, i, b));
+    } else {
+      container.appendChild(makeViewBlock(day, i, b));
+    }
+  });
+  // Add block button
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-block-btn';
+  addBtn.innerHTML = '+ Add block';
+  addBtn.onclick = () => addBlock(day);
+  container.appendChild(addBtn);
+}
+
+function makeViewBlock(day, i, b) {
+  const wrap = document.createElement('div');
+  wrap.className = 'sblock' + (b.hl ? ' '+b.hl : '');
+  const tagHTML = b.tag && b.tag !== 'none'
+    ? (b.tag === 'nudge'
+        ? `<span class="nudge-tag">⚑ nudge</span>`
+        : `<span class="tag t-${b.tag}">${TAG_LABELS[b.tag]}</span>`)
+    : '';
+  wrap.innerHTML = `
+    <div class="sblock-inner">
+      <div class="stime">${b.time}</div>
+      <div class="sinfo">
+        <div class="stitle">${esc(b.title)} ${tagHTML}</div>
+        <div class="ssub">${esc(b.sub)}</div>
+      </div>
+    </div>
+    <div class="sblock-actions">
+      <button class="icon-btn" title="Edit" onclick="startEdit('${day}',${i})">✎</button>
+      <button class="icon-btn del" title="Delete" onclick="deleteBlock('${day}',${i})">✕</button>
+    </div>`;
+  return wrap;
+}
+
+function makeEditBlock(day, i, b) {
+  const wrap = document.createElement('div');
+  wrap.className = 'sblock-edit';
+  const tagOpts = TAG_OPTS.map(t => `<option value="${t}" ${b.tag===t?'selected':''}>${TAG_LABELS[t]||'No tag'}</option>`).join('');
+  const hlOpts = [
+    {v:'',l:'Normal'},
+    {v:'nudge',l:'Nudge (gold)'},
+    {v:'hl',l:'Highlight (purple)'}
+  ].map(o=>`<option value="${o.v}" ${b.hl===o.v?'selected':''}>${o.l}</option>`).join('');
+  wrap.innerHTML = `
+    <div class="edit-row">
+      <input class="edit-time" id="edit-time-${i}" value="${esc(b.time)}" placeholder="Time">
+      <input class="edit-title" id="edit-title-${i}" value="${esc(b.title)}" placeholder="Block title">
+      <select class="edit-tag" id="edit-tag-${i}">${tagOpts}</select>
+      <select class="edit-tag" id="edit-hl-${i}" style="width:130px">${hlOpts}</select>
+    </div>
+    <textarea class="edit-sub" id="edit-sub-${i}" rows="2" placeholder="Description / nudge text">${esc(b.sub)}</textarea>
+    <div class="edit-actions">
+      <button class="btn" onclick="saveEdit('${day}',${i})">Save block</button>
+      <button class="btn btn-ghost" onclick="cancelEdit('${day}')">Cancel</button>
+      <button class="btn btn-danger" onclick="deleteBlock('${day}',${i})">Delete</button>
+    </div>`;
+  return wrap;
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── EDIT ACTIONS ──
+function startEdit(day, i) {
+  editingBlock = {day, i};
+  renderSchedule(day);
+  // scroll into view
+  setTimeout(()=>{
+    const el = document.querySelector('.sblock-edit');
+    if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'});
+  },50);
+}
+
+function cancelEdit(day) {
+  editingBlock = null;
+  renderSchedule(day);
+}
+
+function saveEdit(day, i) {
+  schedules[day][i] = {
+    time: document.getElementById('edit-time-'+i).value,
+    title: document.getElementById('edit-title-'+i).value,
+    sub: document.getElementById('edit-sub-'+i).value,
+    tag: document.getElementById('edit-tag-'+i).value,
+    hl: document.getElementById('edit-hl-'+i).value,
+  };
+  editingBlock = null;
+  renderSchedule(day);
+}
+
+function deleteBlock(day, i) {
+  if (!confirm('Delete this block?')) return;
+  schedules[day].splice(i, 1);
+  editingBlock = null;
+  renderSchedule(day);
+}
+
+function addBlock(day) {
+  schedules[day].push({time:'', title:'New block', sub:'', tag:'none', hl:''});
+  editingBlock = {day, i: schedules[day].length - 1};
+  renderSchedule(day);
+  setTimeout(()=>{
+    const els = document.querySelectorAll('.sblock-edit');
+    if(els.length) els[els.length-1].scrollIntoView({behavior:'smooth',block:'nearest'});
+  },50);
+}
+
+// ── SAVE / LOAD SCHEDULE ──
+async function saveSchedule() {
+  const rows = [['day','time','title','sub','tag','hl']];
+  ['wd','we'].forEach(day => {
+    schedules[day].forEach(b => rows.push([day, b.time, b.title, b.sub, b.tag, b.hl]));
+  });
+  const ok = await gasPost('Schedule','write',{rows});
+  showMsg('sched-msg', ok ? 'Schedule saved ✓' : 'Error saving', ok);
+}
+
+async function loadSchedule() {
+  const rows = await gasGet('Schedule');
+  if (!rows || rows.length <= 1) { renderSchedule('wd'); renderSchedule('we'); return; }
+  const newWd = [], newWe = [];
+  rows.slice(1).forEach(r => {
+    const b = {time:r[1]||'',title:r[2]||'',sub:r[3]||'',tag:r[4]||'none',hl:r[5]||''};
+    if (r[0]==='wd') newWd.push(b);
+    else if (r[0]==='we') newWe.push(b);
+  });
+  if (newWd.length) schedules.wd = newWd;
+  if (newWe.length) schedules.we = newWe;
+  renderSchedule('wd');
+  renderSchedule('we');
+}
+
+// ── PLANNER ──
+async function savePlanner(){
+  const date=new Date().toLocaleDateString('en-IN');
+  const row=[date,
+    document.getElementById('p1').value,
+    document.getElementById('p2').value,
+    document.getElementById('p3').value,
+    document.getElementById('p4').value,
+    document.getElementById('p5').value,
+    document.getElementById('p6').value,
+    document.getElementById('p7').value,
+    document.getElementById('p8').value
+  ];
+  const ok=await gasPost('Planner','append',{row});
+  showMsg('planner-msg',ok?'Saved ✓':'Error',ok);
+  if(ok)loadPlannerHistory();
+}
+function clearPlanner(){['p1','p2','p3','p4','p5','p6','p7','p8'].forEach(id=>document.getElementById(id).value='');}
+async function loadPlannerHistory(){
+  const rows=await gasGet('Planner');
+  const el=document.getElementById('planner-history');
+  if(!rows.length){el.textContent='No planners saved yet.';return;}
+  const headers=['Date','Calls','3 Tasks','Applications','Deep work','Side project','FITTR prep','Proud of','Do differently'];
+  el.innerHTML=rows.slice(-5).reverse().map(r=>`
+    <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:0.5px solid var(--border)">
+      <div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:5px">${r[0]||'—'}</div>
+      ${r.slice(1).map((v,i)=>v?`<div style="font-size:12px;color:var(--muted);margin-bottom:2px"><span style="color:var(--muted2)">${headers[i+1]}: </span>${v}</div>`:'').join('')}
+    </div>`).join('');
+}
+
+// ── EXPENSES ──
+let expCache=[];
+async function addExpense(){
+  const amt=parseFloat(document.getElementById('e-amt').value);
+  const desc=document.getElementById('e-desc').value.trim();
+  const cat=document.getElementById('e-cat').value;
+  if(!amt||!desc)return;
+  const ok=await gasPost('Expenses','append',{row:[new Date().toLocaleDateString('en-IN'),amt,desc,cat]});
+  if(ok){document.getElementById('e-amt').value='';document.getElementById('e-desc').value='';loadExpenses();}
+}
+async function loadExpenses(){
+  const rows=await gasGet('Expenses');
+  expCache=rows.filter(r=>r.length>=4);
+  renderExpenses();
+}
+function renderExpenses(){
+  const now=new Date();
+  const thisMonth=expCache.filter(r=>{
+    const p=String(r[0]).split('/');
+    if(p.length===3){const d=new Date(p[2],p[1]-1,p[0]);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();}
+    return false;
+  });
+  const total=thisMonth.reduce((s,r)=>s+parseFloat(r[1]||0),0);
+  document.getElementById('exp-total').textContent='₹'+total.toLocaleString('en-IN');
+  const cats={};
+  thisMonth.forEach(r=>{cats[r[3]]=(cats[r[3]]||0)+parseFloat(r[1]||0);});
+  document.getElementById('cat-grid').innerHTML=Object.keys(cats).map(c=>`<div class="cat-card"><div class="cat-name">${c}</div><div class="cat-amt">₹${cats[c].toLocaleString('en-IN')}</div></div>`).join('')||'';
+  const last=expCache.slice(-20).reverse();
+  document.getElementById('exp-list').innerHTML=last.length?last.map(r=>`
+    <div class="exp-entry">
+      <span style="color:var(--text);font-weight:400">₹${parseFloat(r[1]).toLocaleString('en-IN')}</span>
+      <span style="flex:1;margin:0 8px;color:var(--muted)">${r[2]}</span>
+      <span style="font-size:11px;color:var(--muted2)">${r[3]}</span>
+      <span style="font-size:11px;color:var(--muted2);margin-left:6px">${r[0]}</span>
+    </div>`).join(''):'<div class="card-sub">No expenses yet.</div>';
+}
+
+// ── MANIFESTATION ──
+async function saveManifest(){
+  const ok=await gasPost('Manifestation','append',{row:[new Date().toLocaleDateString('en-IN'),'Intentions',document.getElementById('m-intentions').value]});
+  showMsg('manifest-msg',ok?'Saved ✓':'Error',ok);
+}
+async function saveGratitude(){
+  const ok=await gasPost('Manifestation','append',{row:[new Date().toLocaleDateString('en-IN'),'Gratitude',document.getElementById('g1').value,document.getElementById('g2').value,document.getElementById('g3').value]});
+  showMsg('grat-msg',ok?'Saved ✓':'Error',ok);
+}
+async function loadManifest(){
+  const rows=await gasGet('Manifestation');
+  const today=new Date().toLocaleDateString('en-IN');
+  rows.filter(r=>r[0]===today).forEach(r=>{
+    if(r[1]==='Intentions'&&r[2])document.getElementById('m-intentions').value=r[2];
+    if(r[1]==='Gratitude'){
+      if(r[2])document.getElementById('g1').value=r[2];
+      if(r[3])document.getElementById('g2').value=r[3];
+      if(r[4])document.getElementById('g3').value=r[4];
+    }
+  });
+}
+
+// ── NOTES ──
+async function saveNotes(){
+  const ok=await gasPost('Notes','append',{row:[new Date().toLocaleDateString('en-IN'),document.getElementById('notes-area').value]});
+  showMsg('notes-msg',ok?'Saved ✓':'Error',ok);
+}
+async function loadNotes(){
+  const rows=await gasGet('Notes');
+  if(rows.length){const last=rows[rows.length-1];if(last[1])document.getElementById('notes-area').value=last[1];}
+}
+
+// ── INIT ──
+loadSchedule();
+</script>
+</body>
+</html>
